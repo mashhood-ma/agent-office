@@ -12,11 +12,14 @@ import type { Person } from '../../world/character';
 import { Basketball, IN_HANDS } from './world';
 import type { Interactable } from '../../world/types';
 import { disposeSprite, textSprite } from '../../world/toon';
+import { loadRecords, recordBasket, recordMiss, resetRecords } from './records';
+import { openBasketballRecords } from './ui';
 
 // The kinds of thing you can use that this defines (see InteractKinds in world/types.ts).
 declare module '../../world/types' {
   interface InteractKinds {
     ball: true;
+    hoopsBoard: true;
   }
 }
 
@@ -47,8 +50,8 @@ export function installBasketball(ctx: Ctx, deps: BasketballDeps) {
   }
   ctx.messages.on('ball', () => ballNews(true));
   const holdingBall = () => ball.holder === store.you;
-  /** Baskets of yours in a row, and whether your last throw was a shot at the hoop (a miss of a pass or a drop doesn't count). */
-  let streak = 0;
+  const records = loadRecords();
+  office.hoop.chalk(records);
   let shooting = false;
   /** When you started winding up a shot (performance.now()), or 0. */
   let windFrom = 0;
@@ -81,6 +84,21 @@ export function installBasketball(ctx: Ctx, deps: BasketballDeps) {
     reach: 3.2,
     hint: () => ({ k: String(ball.still), parts: [hintTitle('🏀 Basketball'), ball.still ? aside('shoot some hoops') : '', key('E', ball.still ? 'Pick it up' : 'Catch it!')] }),
     use: onE(() => takeBall()),
+  });
+
+  ctx.interactions.define('hoopsBoard', {
+    reach: 2.8,
+    hint: () => ({ k: 'hoopsBoard', parts: [hintTitle('🏀 Basketball Records'), key('E', 'View records')] }),
+    use: onE(() =>
+      openBasketballRecords({
+        records,
+        onReset: () => {
+          resetRecords(records);
+          office.hoop.chalk(records);
+          ctx.hint.invalidate();
+        },
+      }),
+    ),
   });
 
   /** How a shot of yours goes from where you are: out of your hands, which way (a heading), how steep, and how hard it takes to sink it (null: you're not shooting at the hoop). */
@@ -163,7 +181,10 @@ export function installBasketball(ctx: Ctx, deps: BasketballDeps) {
   };
   ball.onThrow = (by) => deps.remotes.get(by)?.person.shoot();
   ball.onMiss = (by) => {
-    if (by === store.you && shooting) streak = 0;
+    if (by === store.you && shooting) {
+      recordMiss(records);
+      office.hoop.chalk(records);
+    }
   };
   ball.onBasket = (b) => {
     const mine = b.by === store.you;
@@ -172,11 +193,12 @@ export function installBasketball(ctx: Ctx, deps: BasketballDeps) {
     const how = b.swish ? 'SWISH! ' : b.bank ? 'BANK! ' : '';
     popScore(mine ? `${how}+${points}` : `${clip(peer?.name ?? 'Someone', 16)} ${how}+${points}`, mine ? store.profile.color : (peer?.color ?? '#ff6b1a'));
     if (mine) {
-      streak++;
+      recordBasket(records, b);
+      office.hoop.chalk(records);
       const said = b.swish ? 'Swish!' : b.bank ? 'Off the glass!' : 'In off the rim!';
-      toast(`🏀 ${said} +${points} from ${b.distance.toFixed(1)} m${streak > 1 ? ` · 🔥 ${streak} in a row` : ''}`);
+      toast(`🏀 ${said} +${points} from ${b.distance.toFixed(1)} m${records.streak > 1 ? ` · 🔥 ${records.streak} in a row` : ''}`);
     }
-    if (b.three || (mine && streak >= 3)) ctx.confetti.burst(HOOP.rim.x + 0.3, HOOP.rim.y, HOOP.rim.z, 140, 0.7);
+    if (b.three || (mine && records.streak >= 3)) ctx.confetti.burst(HOOP.rim.x + 0.3, HOOP.rim.y, HOOP.rim.z, 140, 0.7);
   };
 
   /** Points floating up off the hoop, and fading. */
@@ -238,10 +260,10 @@ export function installBasketball(ctx: Ctx, deps: BasketballDeps) {
   function ballHint(): Hint {
     const first = ctx.player.view === 'first';
     return {
-      k: `${streak}|${first}|${!!windFrom}`,
+      k: `${records.streak}|${first}|${!!windFrom}`,
       parts: [
         h('span.title', {}, '🏀 Ball in hand'),
-        streak > 1 ? aside(`🔥 ${streak} in a row`) : '',
+        records.streak > 1 ? aside(`🔥 ${records.streak} in a row`) : '',
         windFrom ? aside('let go in the green!') : key(first ? 'E / Click' : 'E', 'Hold to shoot'),
         key('Q', 'Drop it'),
       ],
