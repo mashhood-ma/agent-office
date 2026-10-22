@@ -3,7 +3,9 @@ import { FLOOR } from '../../../shared/layout';
 import { BALL, HOOP, RETURN_AFTER, THREE_POINT, backboard, launch, nearSolids, outOfReach, simulate, type BallHit, type BallShot, type BallSim, type BallState, type Solid } from '../../../shared/hoop';
 import type { Collider, Interactable } from '../../world/types';
 import type { Fixture } from '../../world/office/fixture';
+import { canvasTexture } from '../../world/texture';
 import { mergeByMaterial, mesh, toon, toonUnique } from '../../world/toon';
+import type { BasketballRecords } from './records';
 
 const ORANGE = '#ff6b1a';
 const INK = '#2b2d42';
@@ -12,8 +14,11 @@ export interface HoopView {
   group: THREE.Group;
   /** The backboard and the arms holding it up, to walk (and jump) into. */
   colliders: Collider[];
+  interactables: Interactable[];
   /** The net swings as a ball drops through it. */
   swish(): void;
+  /** Redraws the records chalkboard on the wall next to the hoop. */
+  chalk(records: BasketballRecords): void;
   update(dt: number): void;
 }
 
@@ -103,15 +108,77 @@ export function buildHoop(): HoopView {
 
   const colliders: Collider[] = [backboard(), { minX: FLOOR.minX, maxX: back, minZ: z - 0.45, maxZ: z + 0.45, bottom: midY - 0.8, top: midY + 0.3 }];
 
+  // The records chalkboard on the west wall, beside the hoop.
+  const boardZ = 11.6;
+  const boardW = 0.96;
+  const boardH = 0.76;
+  const boardY = 1.85;
+  const boardTex = canvasTexture(512, Math.round((512 * boardH) / boardW), () => {});
+  const boardGroup = new THREE.Group();
+  boardGroup.position.set(FLOOR.minX + 0.02, boardY, boardZ);
+  boardGroup.rotation.y = Math.PI / 2;
+  const trimWood = toon('#8a5a34');
+  boardGroup.add(mesh(new THREE.BoxGeometry(boardW + 0.06, boardH + 0.06, 0.03), trimWood, 0, 0, 0.015));
+  const boardFace = mesh(new THREE.PlaneGeometry(boardW, boardH), new THREE.MeshBasicMaterial({ map: boardTex }), 0, 0, 0.031, false);
+  (boardFace.material as THREE.Material).userData.outlineParameters = { visible: false };
+  boardGroup.add(boardFace);
+  group.add(boardGroup);
+
+  const drawChalk = (records: BasketballRecords) => {
+    const c = boardTex.image as HTMLCanvasElement;
+    const g = c.getContext('2d')!;
+    const W = c.width;
+    const H = c.height;
+    g.fillStyle = '#26332d';
+    g.fillRect(0, 0, W, H);
+    const font = (px: number) => `800 ${px}px "Chalkboard SE", "Comic Sans MS", Nunito, ui-rounded, sans-serif`;
+    g.textBaseline = 'middle';
+    g.textAlign = 'center';
+    g.fillStyle = '#f1f1ea';
+    g.font = font(40);
+    g.fillText('🏀 HOOPS RECORDS', W / 2, 44);
+    g.fillRect(36, 74, W - 72, 3);
+
+    g.font = font(30);
+    const row = (label: string, val: string, y: number, highlight = false) => {
+      g.textAlign = 'left';
+      g.fillStyle = highlight ? '#ff9e64' : '#f1f1ea';
+      g.fillText(label, 44, y);
+      g.textAlign = 'right';
+      g.fillText(val, W - 44, y);
+    };
+
+    const streakTxt = records.streak > 1 ? `🔥 ${records.streak} in a row` : `${records.streak}`;
+    row('Streak:', streakTxt, 115, records.streak > 1);
+    row('Best Streak:', `🏆 ${records.bestStreak}`, 160);
+    row('Longest Shot:', records.longestShot > 0 ? `🎯 ${records.longestShot.toFixed(1)} m` : '—', 205);
+    row('Total Baskets:', `${records.totalBaskets}`, 250);
+    row('3PT / Swish:', `${records.threePointers} / ${records.swishes}`, 295);
+
+    g.fillStyle = '#f1f1ea';
+    g.fillRect(36, 335, W - 72, 2);
+    g.textAlign = 'center';
+    g.font = font(24);
+    g.globalAlpha = 0.8;
+    g.fillText('[E] View records card', W / 2, 370);
+    g.globalAlpha = 1;
+    boardTex.needsUpdate = true;
+  };
+
+  const boardIt: Interactable = { kind: 'hoopsBoard', x: FLOOR.minX + 0.3, y: boardY, z: boardZ, radius: 2.6 };
+  const interactables: Interactable[] = [boardIt];
+
   // The net's swing: stretched down as the ball goes through, springing back.
   let stretch = 0;
   let speed = 0;
   return {
     group,
     colliders,
+    interactables,
     swish() {
       speed -= 5;
     },
+    chalk: drawChalk,
     update(dt) {
       // A damped spring.
       speed += (-60 * stretch - 7 * speed) * dt;
@@ -132,7 +199,8 @@ declare module '../../world/types' {
 export const hoop: Fixture<'hoop'> = (site) => {
   const built = buildHoop();
   site.wall('west', HOOP.z, (HOOP.board.bottom - 0.6 + HOOP.board.top + 0.1) / 2, HOOP.board.width + 0.2, HOOP.board.top - HOOP.board.bottom + 0.7);
-  return { group: built.group, colliders: built.colliders, update: (_t, dt) => built.update(dt), handle: { hoop: built } };
+  site.wall('west', 11.6, 1.85, 1.1, 0.95);
+  return { group: built.group, colliders: built.colliders, interactables: built.interactables, update: (_t, dt) => built.update(dt), handle: { hoop: built } };
 };
 
 // ---- The ball ------------------------------------------------------------------------------------------
