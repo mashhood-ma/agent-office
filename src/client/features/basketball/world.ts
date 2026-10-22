@@ -165,7 +165,9 @@ export function buildHoop(): HoopView {
     boardTex.needsUpdate = true;
   };
 
-  const boardIt: Interactable = { kind: 'hoopsBoard', x: FLOOR.minX + 0.3, y: boardY, z: boardZ, radius: 2.6 };
+  const boardIt: Interactable = { kind: 'hoopsBoard', x: FLOOR.minX + 0.9, z: boardZ, radius: 2.5 };
+  boardGroup.userData.interact = boardIt;
+  boardFace.userData.interact = boardIt;
   const interactables: Interactable[] = [boardIt];
 
   // The net's swing: stretched down as the ball goes through, springing back.
