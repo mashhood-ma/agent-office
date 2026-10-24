@@ -105,12 +105,12 @@ export interface Pedals {
 
 export const DRIVE = {
   /** Flat out, forward and in reverse (m/s). */
-  top: 20,
+  top: 35,
   reverse: 7,
   /** Speeding up, forward and back, and slowing down on the brake or rolling (m/s²). */
-  accel: 8,
+  accel: 11,
   reverseAccel: 5,
-  brake: 20,
+  brake: 35,
   coast: 2.5,
   /** Between the axles (m): how tight it turns. */
   wheelbase: 2.8,
