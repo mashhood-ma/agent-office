@@ -1,0 +1,52 @@
+.modal.cafe-menu {
+  width: min(540px, 94vw);
+}
+
+.modal.cafe-menu .svc-list li {
+  position: relative;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.modal.cafe-menu .svc-list li:hover {
+  transform: translateY(-1px);
+}
+
+.modal.cafe-menu .cafe-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.modal.cafe-menu .effect-tag {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--bg-alt, #f0ede6);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  color: var(--ink, #2b2d42);
+}
+
+.modal.cafe-menu .effect-tag.caffeine {
+  background: #fff3e0;
+  color: #d84315;
+  border-color: #ffcc80;
+}
+
+.modal.cafe-menu .effect-tag.boost {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.modal.cafe-menu .effect-tag.soothe {
+  background: #e1f5fe;
+  color: #0277bd;
+  border-color: #81d4fa;
+}
+
+.modal.cafe-menu .order-btn {
+  margin-left: 8px;
+  flex-shrink: 0;
+}

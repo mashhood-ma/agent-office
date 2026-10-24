@@ -469,6 +469,11 @@ export const SEATING: SeatDef[] = [
   { id: 'bench', label: '🪑 Bench', x: -9, y: 0, z: BALCONY.minZ + 0.3, rotY: 0, places: [-0.5, 0.5], hips: 0.47, depth: 0, out: 0.8 },
   { id: 'stool-1', label: '🪑 Stool', x: -0.6, y: 0, z: (BALCONY.minZ + BALCONY.maxZ) / 2 + 0.2, rotY: Math.PI / 2, places: [0], hips: 0.5, depth: 0, out: -0.7 },
   { id: 'stool-2', label: '🪑 Stool', x: 1, y: 0, z: (BALCONY.minZ + BALCONY.maxZ) / 2 + 0.2, rotY: -Math.PI / 2, places: [0], hips: 0.5, depth: 0, out: -0.7 },
+  // In the lobby café downstairs: bistro stools around café tables.
+  ...[-2.5, 0.5].flatMap((z, i) => [
+    { id: `cafe-stool-${i * 2 + 1}`, label: '🪑 Café stool', x: 13.0, y: STREET_Y, z, rotY: Math.PI / 2, places: [0], hips: 0.5, depth: 0, out: -0.7, roof: false },
+    { id: `cafe-stool-${i * 2 + 2}`, label: '🪑 Café stool', x: 14.6, y: STREET_Y, z, rotY: -Math.PI / 2, places: [0], hips: 0.5, depth: 0, out: -0.7, roof: false },
+  ]),
   // On the roof: bar stools along the counter, facing the bar…
   ...[0, 1, 2, 3, 4, 5].map((i) => ({ id: `roof-stool-${i + 1}`, label: '🪑 Bar stool', x: ROOF_BAR.x - ROOF_BAR.depth / 2 - 0.45, y: 0, z: ROOF_BAR.minZ + 0.9 + i * 1.64, rotY: Math.PI / 2, places: [0], hips: 0.78, depth: 0, out: -0.75, roof: true, bar: true })),
   // …sofas round the fire pit, open to the view on the south…
