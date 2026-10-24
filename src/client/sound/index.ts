@@ -242,8 +242,8 @@ export class OfficeSound {
 
   // ---- The kitchen, the dog, the weather, the gong, the dings --------------------------------------
 
-  coffee() {
-    coffee(this.a);
+  coffee(at?: Pos) {
+    coffee(this.a, at);
   }
 
   bark(x: number, z: number, times: number) {

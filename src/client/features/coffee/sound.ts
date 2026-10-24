@@ -1,17 +1,18 @@
 import type { AudioCore } from '../../sound/core';
 import { biquad, envelope, rand } from '../../sound/dsp';
-import { COFFEE_MACHINE } from '../../sound/places';
+import { COFFEE_MACHINE, type Pos } from '../../sound/places';
 
 // ---- The coffee machine -------------------------------------------------------------------------
 
-/** Grind, gurgle and drip. */
-export function coffee(a: AudioCore) {
+/** Grind, gurgle and drip. Positional at `at` if provided, else at the kitchen coffee machine. */
+export function coffee(a: AudioCore, at?: Pos) {
   const ctx = a.ctx;
   if (!ctx) return;
   a.count('coffee');
   // In a hall of its own it's ale drawn from a cask, where you're standing: no grinder, just the pour.
   const cask = !!a.hall;
-  const out = a.panner(cask ? { x: a.listener.x, y: a.listener.y + 0.2, z: a.listener.z } : COFFEE_MACHINE, 1.2, 1);
+  const place = at ?? (cask ? { x: a.listener.x, y: a.listener.y + 0.2, z: a.listener.z } : COFFEE_MACHINE);
+  const out = a.panner(place, 1.2, 1);
   out.connect(a.ambience);
   const t0 = ctx.currentTime + 0.05;
   // The grinder first (not at a cask), then the pour.

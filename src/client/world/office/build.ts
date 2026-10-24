@@ -22,6 +22,7 @@ import { PALETTE, floorTexture, paintPlanks, type Looks } from './materials';
 import { boards, clearOfStairs, lamps, lounge, machineMonitor, nightLights, plants, rugs, tv } from './room';
 import { plug, walls, type Door } from './shell';
 import { balcony } from './balcony';
+import { cafe } from './cafe';
 import { downstairs } from './ground';
 import { wing } from './wing';
 import { beanbags, desks, kiosks } from './seats';
@@ -45,7 +46,7 @@ function floorPlan() {
     walls,
     balcony,
     tee,
-    ...downstairs(cars, street, green, scenic),
+    ...downstairs(cafe, cars, street, green, scenic),
     plug,
     tower,
     desks,

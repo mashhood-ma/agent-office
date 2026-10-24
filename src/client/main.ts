@@ -151,7 +151,7 @@ parts.bookshelf = installBookshelf(ctx);
 installHerald(ctx, parts);
 
 parts.bar = installBar(ctx, { roof: parts.rooftop.roof, djAt: parts.rooftop.djAt, reach });
-parts.coffee = installCoffee(ctx);
+parts.coffee = installCoffee(ctx, { reach });
 parts.smoking = installSmoke(ctx);
 installLamplight(ctx, parts);
 parts.hoops = installBasketball(ctx, { remotes: parts.peers.remotes, reach });
